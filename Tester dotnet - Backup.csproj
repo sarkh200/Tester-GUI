@@ -1,0 +1,37 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net7.0-windows</TargetFramework>
+    <RootNamespace>Tester_dotnet</RootNamespace>
+    <Nullable>enable</Nullable>
+    <UseWPF>true</UseWPF>
+    <ApplicationIcon>Resources\Images\TesterIcon.ico</ApplicationIcon>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="Resources\Exit.png" />
+    <None Remove="Resources\Images\TesterIcon.png" />
+    <None Remove="Resources\Maximize.png" />
+    <None Remove="Resources\Minimize.png" />
+    <None Remove="Resources\Window.png" />
+    <None Remove="TesterIcon.png" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="Resources\Images\TesterIcon.ico" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="Resources\Images\Exit.png" />
+    <Resource Include="Resources\Images\Maximize.png" />
+    <Resource Include="Resources\Images\Minimize.png" />
+    <Resource Include="Resources\Images\TesterIcon.png" />
+    <Resource Include="Resources\Images\Window.png" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Views\" />
+  </ItemGroup>
+
+</Project>
