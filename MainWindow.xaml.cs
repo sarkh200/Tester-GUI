@@ -46,9 +46,17 @@ namespace Tester_dotnet
 
 		private void Test()
 		{
-			Main_Menu_Grid.Visibility = Visibility.Collapsed;
-			Test_View.Visibility = Visibility.Visible;
-			Test_Question.Text = $"{questionNumber + 1}:{shuffleTerms.Keys.ToList() [questionNumber]}";
+			try
+			{
+				Test_Question.Text = $"{questionNumber + 1}:{shuffleTerms.Keys.ToList() [questionNumber]}";
+			}
+			catch
+			{
+				End_Screen_Title.Text = $"You got a score of: {correct}/{shuffleTerms.Count}";
+				Test_View.Visibility = Visibility.Collapsed;
+				Test_End_Screen.Visibility = Visibility.Visible;
+				return;
+			}
 			answerNumeber = r.Next(1, 4);
 			string [] questions = new string [3];
 			for (int i = 0; i < 3; i++)
@@ -90,16 +98,8 @@ namespace Tester_dotnet
 				default:
 					break;
 			}
-			if (questionNumber + 1 < shuffleTerms.Count)
-			{
-				questionNumber++;
-			}
-			else
-			{
-				End_Screen_Title.Text = $"You got a score of: {correct}/{shuffleTerms.Count}";
-				Test_View.Visibility = Visibility.Collapsed;
-				Test_End_Screen.Visibility = Visibility.Visible;
-			}
+			
+			questionNumber++;
 		}
 
 		public MainWindow()
@@ -141,6 +141,8 @@ namespace Tester_dotnet
 			{
 				if (Test_Selection.IsChecked == true)
 				{
+					Main_Menu_Grid.Visibility = Visibility.Collapsed;
+					Test_View.Visibility = Visibility.Visible;
 					Test();
 					Test_Score.Text = $" Score: \n {correct}/{shuffleTerms.Count}";
 				}
@@ -257,6 +259,7 @@ namespace Tester_dotnet
 			correct = 0;
 			shuffleTerms = Shuffle_Dictionary(terms);
 			Test_End_Screen.Visibility = Visibility.Collapsed;
+			Test_View.Visibility = Visibility.Visible;
 			Test();
 			Test_Score.Text = $" Score: \n {correct}/{shuffleTerms.Count}";
 		}
