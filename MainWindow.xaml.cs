@@ -3,11 +3,13 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Timers;
 using System.Windows;
+using System.Windows.Annotations;
 using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Documents;
@@ -26,35 +28,83 @@ namespace Tester_dotnet
 	public partial class MainWindow: Window
 	{
 		Dictionary<string, string> terms = new();
+		Dictionary<string, string> shuffleTerms = new Dictionary<string, string>();
 		Uri WindowPng = new Uri("/Resources/Images/Window.png", UriKind.Relative);
 		Uri MaximizePng = new Uri("/Resources/Images/Maximize.png", UriKind.Relative);
-		CornerRadius maximizedRad = new CornerRadius(0);
-		CornerRadius windowedRad = new CornerRadius(8);
-		string pathToCSV = "No user input";
-		Dictionary<string, string> shuffleTerms = new Dictionary<string, string>();
-		int questionNumber = 0;
 		Random r = new Random();
+		string pathToCSV = "No user input";
+		private int answerNumeber;
+		int questionNumber = 0;
+		int answerSelected = 0;
+		int correct = 0;
+
 		private Dictionary<string, string> Shuffle_Dictionary(Dictionary<string, string> dictionary)
 		{
 			Dictionary<string, string> shuffledDictionary = dictionary.OrderBy(x => r.Next()).ToDictionary(k => k.Key, k => k.Value);
 			return shuffledDictionary;
 		}
 
-		private int RandIntArrayExclude(int [] exclude, int maxRange, int minRange = 0)
+		private void Test()
 		{
-			int randomInt = new();
-			do
+			Main_Menu_Grid.Visibility = Visibility.Collapsed;
+			Test_View.Visibility = Visibility.Visible;
+			Test_Question.Text = $"{questionNumber + 1}:{shuffleTerms.Keys.ToList() [questionNumber]}";
+			answerNumeber = r.Next(1, 4);
+			string [] questions = new string [3];
+			for (int i = 0; i < 3; i++)
 			{
-				randomInt = r.Next(minRange, maxRange);
-			} while (exclude.Contains(randomInt));
+				string question;
+				do
+				{
+					question = shuffleTerms.Values.ToList() [r.Next(0, shuffleTerms.Count)];
+				} while (shuffleTerms.Values.ToList() [questionNumber].ToString() == question || questions.Contains(question));
+				questions [i] = question;
+			}
 
-			return randomInt;
+			switch (answerNumeber)
+			{
+				case 1:
+					Test_Answer_1.Content = shuffleTerms.Values.ToList() [questionNumber];
+					Test_Answer_2.Content = questions [0];
+					Test_Answer_3.Content = questions [1];
+					Test_Answer_4.Content = questions [2];
+					break;
+				case 2:
+					Test_Answer_1.Content = questions [0];
+					Test_Answer_2.Content = shuffleTerms.Values.ToList() [questionNumber];
+					Test_Answer_3.Content = questions [1];
+					Test_Answer_4.Content = questions [2];
+					break;
+				case 3:
+					Test_Answer_1.Content = questions [0];
+					Test_Answer_2.Content = questions [1];
+					Test_Answer_3.Content = shuffleTerms.Values.ToList() [questionNumber];
+					Test_Answer_4.Content = questions [2];
+					break;
+				case 4:
+					Test_Answer_1.Content = questions [0];
+					Test_Answer_2.Content = questions [1];
+					Test_Answer_3.Content = questions [2];
+					Test_Answer_4.Content = shuffleTerms.Values.ToList() [questionNumber];
+					break;
+				default:
+					break;
+			}
+			if (questionNumber + 1 < shuffleTerms.Count)
+			{
+				questionNumber++;
+			}
+			else
+			{
+				End_Screen_Title.Text = $"You got a score of: {correct}/{shuffleTerms.Count}";
+				Test_View.Visibility = Visibility.Collapsed;
+				Test_End_Screen.Visibility = Visibility.Visible;
+			}
 		}
 
 		public MainWindow()
 		{
 			InitializeComponent();
-			Border.CornerRadius = windowedRad;
 		}
 
 		private void TimerStart()
@@ -84,49 +134,24 @@ namespace Tester_dotnet
 		{
 			System.Windows.Application.Current.Shutdown();
 		}
-		
+
 		private void Go_Button_Click(object sender, RoutedEventArgs e)
 		{
-			if(pathToCSV != "No user input")
+			if (pathToCSV != "No user input")
 			{
 				if (Test_Selection.IsChecked == true)
 				{
-					Main_Menu_Grid.Visibility = Visibility.Hidden;
-					Test_View.Visibility = Visibility.Visible;
-					shuffleTerms = Shuffle_Dictionary(terms);
-					Question.Text = shuffleTerms.Keys.ToList() [questionNumber];
-					int answerNumeber = r.Next(1, 4);
-					int [] questions = new int [] {RandIntArrayExclude(new int [] {1}, 4)};
-
-					switch (answerNumeber)
-					{
-						case 1:
-							Answer_1.Content = shuffleTerms.Values.ToList() [questionNumber];
-							Answer_2.Content = shuffleTerms.Values.ToList() [questions[1]];
-							break;
-						case 2:
-							Answer_2.Content = shuffleTerms.Values.ToList() [questionNumber];
-							break;
-						case 3:
-							Answer_3.Content = shuffleTerms.Values.ToList() [questionNumber];
-							break;
-						case 4:
-							Answer_4.Content = shuffleTerms.Values.ToList() [questionNumber];
-							break;
-						default:
-							break;
-					}
-
-					Answer_1.Content = shuffleTerms.Values.ToList() [RandIntArrayExclude(new int [] { questionNumber }, shuffleTerms.Count())];
+					Test();
+					Test_Score.Text = $" Score: \n {correct}/{shuffleTerms.Count}";
 				}
 				else if (Practice_Selection.IsChecked == true)
 				{
-					Main_Menu_Grid.Visibility = Visibility.Hidden;
+					Main_Menu_Grid.Visibility = Visibility.Collapsed;
 					Practice_View.Visibility = Visibility.Visible;
 				}
 				else if (View_Terms_Selection.IsChecked == true)
 				{
-					Main_Menu_Grid.Visibility = Visibility.Hidden;
+					Main_Menu_Grid.Visibility = Visibility.Collapsed;
 					Term_View.Visibility = Visibility.Visible;
 				}
 			}
@@ -161,47 +186,79 @@ namespace Tester_dotnet
 				pathToCSV = System.IO.Path.GetFullPath(openFileDialog.FileName);
 				Input_Label.Text = $"Path to csv: {pathToCSV}";
 				terms = File.ReadAllLines(pathToCSV).Select(line => line.Split(",")).ToDictionary(line => line [0], line => line [1]);
-				Terms_Box.Text = string.Join(Environment.NewLine, terms).Replace("[","").Replace("]","").Replace(","," :");
+				terms.Remove(terms.Keys.First());
+				Terms_Box.Text = string.Join(Environment.NewLine, terms).Replace("[", "").Replace("]", "").Replace(",", " :");
+				shuffleTerms = Shuffle_Dictionary(terms);
 			}
 		}
 
 		private void Done_Button_Click(object sender, RoutedEventArgs e)
 		{
 			Main_Menu_Grid.Visibility = Visibility.Visible;
-			Term_View.Visibility = Visibility.Hidden;
+			Term_View.Visibility = Visibility.Collapsed;
 		}
 
-		private void Answer_1_Selection_Checked(object sender, RoutedEventArgs e)
+		private void Test_Answer_1_Selection_Checked(object sender, RoutedEventArgs e)
 		{
-			Answer_2.IsChecked = false;
-			Answer_3.IsChecked = false;
-			Answer_4.IsChecked = false;
+			answerSelected = 1;
+			Test_Answer_2.IsChecked = false;
+			Test_Answer_3.IsChecked = false;
+			Test_Answer_4.IsChecked = false;
 		}
 
-		private void Answer_2_Selection_Checked(object sender, RoutedEventArgs e)
+		private void Test_Answer_2_Selection_Checked(object sender, RoutedEventArgs e)
 		{
-			Answer_1.IsChecked = false;
-			Answer_3.IsChecked = false;
-			Answer_4.IsChecked = false;
+			answerSelected = 2;
+			Test_Answer_1.IsChecked = false;
+			Test_Answer_3.IsChecked = false;
+			Test_Answer_4.IsChecked = false;
 		}
 
-		private void Answer_3_Selection_Checked(object sender, RoutedEventArgs e)
+		private void Test_Answer_3_Selection_Checked(object sender, RoutedEventArgs e)
 		{
-			Answer_1.IsChecked = false;
-			Answer_2.IsChecked = false;
-			Answer_4.IsChecked = false;
+			answerSelected = 3;
+			Test_Answer_1.IsChecked = false;
+			Test_Answer_2.IsChecked = false;
+			Test_Answer_4.IsChecked = false;
 		}
 
-		private void Answer_4_Selection_Checked(object sender, RoutedEventArgs e)
+		private void Test_Answer_4_Selection_Checked(object sender, RoutedEventArgs e)
 		{
-			Answer_1.IsChecked = false;
-			Answer_2.IsChecked = false;
-			Answer_3.IsChecked = false;
+			answerSelected = 4;
+			Test_Answer_1.IsChecked = false;
+			Test_Answer_2.IsChecked = false;
+			Test_Answer_3.IsChecked = false;
 		}
 
-		private void Confirm_Button_Click(object sender, RoutedEventArgs e)
+		private void Test_Confirm_Button_Click(object sender, RoutedEventArgs e)
 		{
+			if (answerSelected == answerNumeber && answerSelected != 0)
+			{
+				correct++;
+				Test_Score.Text = $" Score: \n {correct}/{shuffleTerms.Count}";
+				Test();
+			}
+			else if(answerSelected != 0)
+			{
+				Test_Score.Text = $" Score: \n {correct}/{shuffleTerms.Count}";
+				Test();
+			}
+		}
 
+		private void End_Screen_Done_Click(object sender, RoutedEventArgs e)
+		{
+			Test_End_Screen.Visibility = Visibility.Collapsed;
+			Main_Menu_Grid.Visibility = Visibility.Visible;
+		}
+
+		private void End_Screen_Restart_Click(object sender, RoutedEventArgs e)
+		{
+			questionNumber = 0;
+			correct = 0;
+			shuffleTerms = Shuffle_Dictionary(terms);
+			Test_End_Screen.Visibility = Visibility.Collapsed;
+			Test();
+			Test_Score.Text = $" Score: \n {correct}/{shuffleTerms.Count}";
 		}
 	}
 }
